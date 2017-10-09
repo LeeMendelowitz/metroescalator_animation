@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # File: prepare_data.py
 # Date: 2017/10/09
 #
@@ -113,7 +114,7 @@ station_tuples = list(tuple(v) for v in stations.itertuples(index = False))
 json_out['stations'] = station_tuples
 json_out['stations_slots'] = list(stations.columns)
 
-def json_serial(obj):
+def json_date_serializer(obj):
     """JSON serializer for objects not serializable by default json code"""
 
     if isinstance(obj, (date)):
@@ -121,4 +122,4 @@ def json_serial(obj):
     raise TypeError ("Type %s not serializable" % type(obj))
 
 with open('unit_by_date.json', 'w') as fout:
-  json.dump(json_out, fout, default = json_serial)
+  json.dump(json_out, fout, default = json_date_serializer)
