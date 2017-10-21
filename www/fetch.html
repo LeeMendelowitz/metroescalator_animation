@@ -1,0 +1,190 @@
+<html>
+  <head>
+
+    <!-- Node modules styles -->
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="node_modules/daterangepicker/daterangepicker.css" rel="stylesheet">
+    <!-- End node module styles -->
+
+    <script type="text/javascript" src="funcs.js"></script>
+
+
+    <!-- Javascript -->
+    <script type="text/javascript" src="node_modules/vue/dist/vue.js"></script>
+    <script type="text/javascript" src="node_modules/jquery/dist/jquery.js"></script>
+    <script type="text/javascript" src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
+    <script type="text/javascript" src="node_modules/moment/moment.js"></script>
+    <script type="text/javascript" src="node_modules/daterangepicker/daterangepicker.js"></script>
+    <!-- End Javascript -->
+
+
+    
+
+    <style>
+
+    .unit-square {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background-color: black;
+      margin: 5px;
+      font-size: 6px;
+    }
+
+    .maActive {
+      background-color: red;
+    }
+
+    </style>
+
+    
+
+  </head>
+
+  <body>
+
+    <div id="app">
+
+      <form class="form-inline">
+
+        <div class="form-group">
+          <label for='status-type-select'>Status Type</label>
+          <select id='status-type-select' name="status" v-model="status">
+            <option value="BROKEN">Broken</option>
+            <option value="INSPECTION">Inspection</option>
+            <option value="REHAB">Rehab</option>
+            <option value="OFF">Off</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for='sort-select'>Sort Order</label>
+          <select id='sort-select' name="sortorder" v-model="sortorder">
+            <option value="unitid">Unit Id</option>
+            <option value="station">Station</option>
+            <option value="mostbroken">Most Broken</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for='date-index-input'>Date Index</label>
+          <input id='date-index-input' type="number" min=0 v-model="date_index">
+        </div>
+
+        <input id='daterangeinput' type="text" name="daterange" v-model="date_range" />
+
+
+      </form>
+
+      <p>Date range: {{ date_range }}</p>
+      <p>Start Date: {{ picker_start_date }} {{ daterangeinput_el && daterangeinput_el.data('daterangepicker').startDate}} </p>
+      <p>End Date: {{ picker_end_date }} {{ daterangeinput_el && daterangeinput_el.data('daterangepicker').endDate}}</p>
+      {{ items && items.dates[[date_index]] }}
+
+      <div v-if="items !== null">
+
+        <!-- TODO:
+        1. Add a key here to track the unit.
+        2. Provide styling based on the date.
+        -->
+
+        <div
+          class="unit-square"
+          v-for="(unit, index) in items.units"
+          v-bind:class="{
+            maActive: highlighted_units[index] == 1,
+            maNotActive: highlighted_units[index] == 0}"
+          >
+          {{ index }}
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+
+      var apiURL = "unit_by_date.json";
+
+      var app = new Vue({
+        el: '#app',
+        data: {
+          message: 'Hello Vue!',
+          items : null,
+          status : "BROKEN",
+          date_index : 0,
+          daterangeinput_el: null,
+          date_range: '01/01/2015 - 01/31/2015'
+
+        },
+        created: function () {
+          this.fetchData();
+        },
+
+        methods: {
+          fetchData: function () {
+            var self = this;
+            var req = $.getJSON( apiURL, function( new_data ) {
+                console.log("Got the data.");
+                self.items = new_data;
+            });
+          }
+        },
+
+        computed: {
+          num_units : function() {
+
+            if(this.items === null) {
+              return 0;
+            }
+
+            return this.items.units.length;
+
+          }, 
+          highlighted_units: function() {
+
+            if(this.items === null) {
+              return [];
+            }
+
+            var ones = this.items.category_by_date[this.status][this.date_index];
+            var ret = Array(this.num_units).fill(0);
+            ones.forEach(function(ind) {
+              ret[ind] = 1;
+            });
+            return ret;
+          },
+          picker_start_date: function() {
+            
+            if(this.daterangeinput_el === null) {
+              return null;
+            }
+            this.date_range; // Add a listener on the date range model
+            return this.daterangeinput_el.data('daterangepicker').startDate;
+          },
+          picker_end_date: function() {
+            
+            if(this.daterangeinput_el === null) {
+              return null;
+            }
+            this.date_range; // Add a listener on the date range model
+            return this.daterangeinput_el.data('daterangepicker').endDate;
+          }
+        }
+
+      });
+
+
+      $(function() {
+        var $el = $('#daterangeinput');
+        $el.daterangepicker();
+        app.daterangeinput_el = $el
+      });
+
+
+
+
+    </script>
+
+  </body>
+
+</html>
