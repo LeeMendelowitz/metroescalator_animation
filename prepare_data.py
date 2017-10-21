@@ -10,6 +10,7 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 import itertools
 import json
+import simplejson as sjson
 
 
 # Read in the units
@@ -114,12 +115,18 @@ station_tuples = list(tuple(v) for v in stations.itertuples(index = False))
 json_out['stations'] = station_tuples
 json_out['stations_slots'] = list(stations.columns)
 
-def json_date_serializer(obj):
+def json_default_serializer(obj):
     """JSON serializer for objects not serializable by default json code"""
 
     if isinstance(obj, (date)):
         return obj.strftime("%Y-%m-%d")
     raise TypeError ("Type %s not serializable" % type(obj))
 
+json_out_str = sjson.dumps(json_out, ignore_nan = True, default = json_default_serializer)
 with open('unit_by_date.json', 'w') as fout:
-  json.dump(json_out, fout, default = json_date_serializer)
+  fout.write(json_out_str)
+
+json_out_str_orig = json_out_str
+json_out_str = "var outage_data = {data};".format(data = json_out_str)
+with open('unit_by_date.var.json', 'w') as fout:
+  fout.write(json_out_str)
