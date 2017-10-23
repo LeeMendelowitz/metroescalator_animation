@@ -25,6 +25,8 @@
 
     <style>
 
+      body { padding-top: 70px; }
+
       .unit-square {
         display: inline-block;
         width: 20px;
@@ -75,59 +77,97 @@
 
     <div id="app">
 
-      
+      <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <span class="navbar-brand">MetroEscalator Animation</span>
+          </div>
+          <div>
+            <span>{{ date_index_str }}</span>
+          </div>
 
-      <form class="form-inline">
+        </div>
+      </nav>
 
-        <div class="form-group">
-          <label for='status-type-select'>Status Type</label>
-          <select id='status-type-select' name="status" v-model="status">
-            <option value="BROKEN">Broken</option>
-            <option value="INSPECTION">Inspection</option>
-            <option value="REHAB">Rehab</option>
-            <option value="OFF">Off</option>
-          </select>
+      <div class="container">
+
+        <!-- form controls -->
+        <div class="row">
+          <h3>Controls</h3>
+          <div class="col-xs-12">
+            <form class="form-inline">
+
+              <div class="form-group">
+                <label for='status-type-select'>Status Type</label>
+                <select id='status-type-select' name="status" v-model="status">
+                  <option value="BROKEN">Broken</option>
+                  <option value="INSPECTION">Inspection</option>
+                  <option value="REHAB">Rehab</option>
+                  <option value="OFF">Off</option>
+                </select>
+              </div>
+
+
+              <div class="form-group">
+                <label for='daterangeinput'>Date Range</label>
+                <input id='daterangeinput' type="text" name="daterange" />
+              </div>
+
+              <div class="form-group">
+                <label for="tick-input">Sleep</label>
+                <input id='tick-inpu' type='number' name='tick' v-model="tick" />
+              </div>
+
+              <label for="unit-grouping-btn">Grouping</label>
+              <div id='unit-grouping-btn' class="btn-group" role="group">
+                <button type="button" class="btn btn-default"
+                  v-on:click="set_unit_grouping(0)"
+                  v-bind:class="{active: group_index == 0}">None</button>
+                <button type="button" class="btn btn-default" v-on:click="set_unit_grouping(1)"
+                v-bind:class="{active: group_index == 1}">By Station</button>
+              </div>
+
+   
+
+                <div class="btn-group" role="toolbar" >
+                  <button type="button" class="btn btn-primary" role="group" v-on:click="play()"
+                    v-bind:class="{active: animation_state === 'PLAY'}">
+                    <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+                  </button>
+                  <button type="button" class="btn btn-warning" role="group" v-on:click="stop()"
+                    v-bind:class="{active: animation_state === 'STOP'}">
+                    <span class="glyphicon glyphicon-pause" aria-hidden="true"></span>  
+                  </button>
+                  <button type="button" class="btn btn-danger" role="group" v-on:click="reset()">
+                    <span class="glyphicon glyphicon-fast-backward" aria-hidden="true"></span>
+                  </button>
+                </div>
+
+            </form>
+          </div>
+
         </div>
 
-<!--         <div class="form-group">
-          <label for='date-index-input'>Date Index</label>
-          <input id='date-index-input' type="number" min=0 v-model="date_index">
-        </div> -->
+        <!-- debug output -->
+        <div class="row">
+          <h4>DEBUG</h4>
+          <p>Animation State: {{ animation_state }}</p>
+          <p>Start Date: {{ start_date }}</p>
+          <p>End Date: {{ end_date }}</p>
+          <p>Tab: {{ group_index }} </p>
 
-        <div class="form-group">
-          <label for='daterangeinput'>Date Range</label>
-          <input id='daterangeinput' type="text" name="daterange" />
+          {{ items && items.dates[[date_index]] }}
         </div>
 
-        <br>
-
-        <div class="form-group">
-          <label for="tick-input">Sleep</label>
-          <input id='tick-inpu' type='number' name='tick' v-model="tick" />
+        <!-- current date -->
+        <div class="row">
+          <h3>{{ date_index_str }}</h3>
         </div>
 
-        <div class="form-group">
-          <input class="btn btn-primary" type="button" value="Play" v-on:click="play()">
-          <input class="btn btn-danger" type="button" value="Stop"  v-on:click="stop()">
-          <input class="btn btn-warning" type="button" value="Reset"  v-on:click="reset()">
-        </div>
-
-
-      </form>
-
-      <p>Animation State: {{ animation_state }}</p>
-      <p>Start Date: {{ start_date }}</p>
-      <p>End Date: {{ end_date }}</p>
-      <p>Tab: {{ tab_index }} </p>
-
-      {{ items && items.dates[[date_index]] }}
-
-      
-
-
-      <tabs v-model="tab_index">
-        <tab title="All Units">
-          <div v-if="(items !== null) && tab_index === 0">
+        <!-- output for no grouping -->
+        <div class="row">
+          <div v-if="(items !== null) && group_index === 0">
+            <h4> All units </h4>
             <form>
               <div class="form-group">
                 <label for='sort-select'>Sort Order</label>
@@ -157,14 +197,17 @@
                 </span>
             </div>
           </div>
-        </tab>
-        <tab title="By Station">
-          <div v-if="(items !== null) && tab_index === 1">
+        </div>
+
+        <!-- output for grouping by station -->
+        <div class="row">
+          <div v-if="(items !== null) && group_index === 1">
+            <h4>By Station</h4>
             <div
               v-for="unit_group in units_by_station"
               :key="unit_group.station">
 
-              <h3>{{ unit_group.station }}</h3>
+              <h5>{{ unit_group.station }}</h5>
 
               <div v-for="unit in unit_group.units"
                 :key="unit.unit_id"
@@ -184,11 +227,13 @@
 
             </div>
           </div>
-        </tab>
-      </tabs>
+        </div>
 
 
-    </div>
+      </div> <!-- /container -->
+    </div> <!-- /app -->
+
+    <
 
     <script>
 
@@ -217,7 +262,7 @@
           last_tick: null,
           sortorder: "unitid",
 
-          tab_index: 1
+          group_index: 1
 
         },
         watch: {
@@ -301,24 +346,36 @@
             self.timeout_id = null;
             var this_tick, tick_delta, sleep;
             if(this.date_index < this.end_date_index) {
+
               self.animation_state = "PLAY";
+              sleep = self.tick;
 
               this_tick = new Date();
-              tick_delta = this_tick - self.last_tick
-              sleep = self.tick - tick_delta;
-              if (sleep < 0) {
-                console.log("Warning: Animation is lagging behind by " + sleep + " ms");
-              }
-              sleep = sleep > 0 ? sleep : 0;
-              self.last_tick = this_tick;
 
-              this.date_index += 1;
+              // Check if we should adjust the sleep due to animation lag
+              if(self.last_tick) {
+                tick_delta = this_tick - self.last_tick
+                sleep = self.tick - tick_delta;
+                if (sleep < 0) {
+                  console.log("Warning: Animation is lagging behind by " + sleep + " ms");
+                }
+                sleep = sleep > 0 ? sleep : 0;
+              }
+
+              // increment the date index
               self.timeout_id = setTimeout(function(){
+                self.date_index += 1;
+                var n = new Date();
+                if(self.last_tick) {
+                  console.log("Tick delta: ", n - self.last_tick);
+                }
+                self.last_tick = n;
                 self.next_tick();
               }, sleep);
 
             } else {
               self.animation_state = "STOP";
+              self.last_tick = undefined;
             }
 
           },
@@ -342,6 +399,7 @@
             if (this.timeout_id !== null) {
               window.clearTimeout(this.timeout_id);
               this.timeout_id = null;
+              this.last_tick = undefined;
             }
           },
 
@@ -370,11 +428,24 @@
               });
             }
 
+          },
+          set_unit_grouping : function(index) {
+            this.group_index = index;
           }
 
         },
 
         computed: {
+          date_index_str : function() {
+            
+            if(!this.items || (!this.date_index && this.date_index !== 0)) {
+              return undefined;
+            }
+            var d = this.items.dates[[this.date_index]];
+            var s_out = moment(d).format('ddd MMMM Do, YYYY')
+            return s_out;
+
+          },
           num_units : function() {
 
             if(this.items === null) {
@@ -415,10 +486,6 @@
       //   });
       //   app.updateDateRange();
       // });
-
-
-
-
     </script>
 
   </body>
