@@ -75,7 +75,7 @@
           <input id='date-index-input' type="number" min=0 v-model="date_index">
         </div>
 
-        <input id='daterangeinput' type="text" name="daterange" v-model="date_range_txt" />
+        <input id='daterangeinput' type="text" name="daterange" />
 
         <div class="form-group">
           <label for="tick-input">Sleep</label>
@@ -91,7 +91,6 @@
 
       </form>
 
-      <p>Date range: {{ date_range_txt }}</p>
       <p>Animation State: {{ animation_state }}</p>
       <p>Start Date: {{ start_date }}</p>
       <p>End Date: {{ end_date }}</p>
@@ -134,7 +133,6 @@
           status : "BROKEN",
           date_index : 0,
           daterangeinput_el: null,
-          date_range_txt: '01/01/2015 - 01/31/2015',
           min_date: null,
           max_date: null,
           start_date: null,
@@ -145,13 +143,11 @@
           timeout_id: null,
           tick: 300, // 300ms
           animation_state: "STOP",
+          last_tick: null,
           sortorder: "unitid"
 
         },
         watch: {
-          date_range_txt : function(new_text) {
-            this.updateDateRange();
-          },
           sortorder : function() {
             this.sort_units();
           }
@@ -184,10 +180,13 @@
 
             // Configure the date range input with the min and max dates
             var $el = $('#daterangeinput');
+            var min_date_str = moment(self.min_date).format("MM/DD/YY");
+            var max_date_str = moment(self.max_date).format("MM/DD/YY")
             $el.daterangepicker({
-              minDate: self.min_date, 
-              maxDate: self.max_date
-
+              "startDate" : min_date_str,
+              "endDate" : max_date_str,  
+              "minDate": min_date_str, 
+              "maxDate": max_date_str
             });
             self.daterangeinput_el = $el;
             $el.on('apply.daterangepicker hide.daterangepicker', function(ev, picker) {
@@ -197,15 +196,27 @@
           },
 
           updateDateRange: function() {
+
             if(this.daterangeinput_el === null) return;
+
             var d = this.daterangeinput_el.data('daterangepicker');
             if(d === null) return;
+
             this.start_date = d.startDate;
             this.end_date = d.endDate;
 
-            // TODO: Check the date index here?
             this.start_date_index = this.start_date.diff(this.min_date, "days");
             this.end_date_index = this.end_date.diff(this.min_date, "days");
+
+            var max_date_index = this.items.dates.length;
+            if(this.start_date_index < 0 || this.start_date_index >= max_date_index) {
+              console.log("Bad start date index: " + this.start_date_index + '. Max allowed is ' + max_date_index);
+              this.start_date_index = 0;
+            }           
+            if(this.end_date_index < 0 || this.end_date_index >= max_date_index) {
+              console.log("Bad end date index: " + this.end_date_index + '. Max allowed is ' + max_date_index);
+              this.end_date_index = 0;
+            }
             this.date_index = this.start_date_index;
 
           },
@@ -214,14 +225,23 @@
 
             var self = this;
             self.timeout_id = null;
+            var this_tick, tick_delta, sleep;
             if(this.date_index < this.end_date_index) {
               self.animation_state = "PLAY";
-              console.log(moment().format('MMMM Do YYYY, h:mm:ss.SSS a'));
-              this.date_index += 1;
 
+              this_tick = new Date();
+              tick_delta = this_tick - self.last_tick
+              sleep = self.tick - tick_delta;
+              if (sleep < 0) {
+                console.log("Warning: Animation is lagging behind by " + sleep + " ms");
+              }
+              sleep = sleep > 0 ? sleep : 0;
+              self.last_tick = this_tick;
+
+              this.date_index += 1;
               self.timeout_id = setTimeout(function(){
                 self.next_tick();
-              }, self.tick);
+              }, sleep);
 
             } else {
               self.animation_state = "STOP";
@@ -231,20 +251,20 @@
 
           play: function() {
 
-            if(self.animation_state === "PLAY") {
+            if(this.animation_state === "PLAY") {
               return;
             }
-            if( self.timeout_id != null) {
+            if( this.timeout_id != null) {
               return;
             }
 
-            self.animation_state = "PLAY";
+            this.animation_state = "PLAY";
             this.next_tick();
 
           },
 
           stop: function() {
-            self.animation_state = "STOP";
+            this.animation_state = "STOP";
             if (this.timeout_id !== null) {
               window.clearTimeout(this.timeout_id);
               this.timeout_id = null;
@@ -297,6 +317,9 @@
             }
 
             var ones = this.items.category_by_date[this.status][this.date_index];
+            if (ones === undefined) {
+              return [];
+            }
             var ret = Array(this.num_units).fill(0);
             ones.forEach(function(ind) {
               ret[ind] = 1;
