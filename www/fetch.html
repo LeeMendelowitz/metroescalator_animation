@@ -85,12 +85,14 @@
         <div class="form-group">
           <input class="btn btn-primary" type="button" value="Play" v-on:click="play()">
           <input class="btn btn-danger" type="button" value="Stop"  v-on:click="stop()">
+          <input class="btn btn-warning" type="button" value="Reset"  v-on:click="reset()">
         </div>
 
 
       </form>
 
       <p>Date range: {{ date_range_txt }}</p>
+      <p>Animation State: {{ animation_state }}</p>
       <p>Start Date: {{ start_date }}</p>
       <p>End Date: {{ end_date }}</p>
 
@@ -211,6 +213,7 @@
           next_tick: function() {
 
             var self = this;
+            self.timeout_id = null;
             if(this.date_index < this.end_date_index) {
               self.animation_state = "PLAY";
               console.log(moment().format('MMMM Do YYYY, h:mm:ss.SSS a'));
@@ -231,6 +234,9 @@
             if(self.animation_state === "PLAY") {
               return;
             }
+            if( self.timeout_id != null) {
+              return;
+            }
 
             self.animation_state = "PLAY";
             this.next_tick();
@@ -241,7 +247,14 @@
             self.animation_state = "STOP";
             if (this.timeout_id !== null) {
               window.clearTimeout(this.timeout_id);
+              this.timeout_id = null;
             }
+          },
+
+          reset: function() {
+            this.stop();
+            this.date_index = this.start_date_index;
+
           },
 
           sort_units : function() {
