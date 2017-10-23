@@ -17,6 +17,7 @@
     <script type="text/javascript" src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
     <script type="text/javascript" src="node_modules/moment/moment.js"></script>
     <script type="text/javascript" src="node_modules/daterangepicker/daterangepicker.js"></script>
+    <script src="//unpkg.com/uiv/dist/uiv.min.js"></script>
     <!-- End Javascript -->
 
 
@@ -24,19 +25,46 @@
 
     <style>
 
-    .unit-square {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      background-color: black;
-      margin: 5px;
-      font-size: 6px;
-    }
+      .unit-square {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        background-color: black;
+        margin: 5px;
+        font-size: 6px;
+      }
 
-    .maActive {
-      background-color: red;
-    }
+      .maActive {
+        background-color: red;
+      }
 
+
+      .ma-tooltip {
+          position: relative;
+      }
+
+      .ma-tooltip .ma-tooltiptext {
+          visibility: hidden;
+          width: 200px;
+          background-color: #eaeaea;
+          border: 1px solid #515151;
+          border-radius: 6px;
+
+          color: black;
+          text-align: center;
+          font-size: 12px;
+          padding: 5px 2px;
+
+          /* Position the tooltip */
+          position: absolute;
+          z-index: 1;
+          top: -5px;
+          left: 10px;
+      }
+
+      .ma-tooltip:hover .ma-tooltiptext {
+          visibility: visible;
+      }
     </style>
 
     
@@ -61,21 +89,17 @@
           </select>
         </div>
 
-        <div class="form-group">
-          <label for='sort-select'>Sort Order</label>
-          <select id='sort-select' name="sortorder" v-model="sortorder">
-            <option value="unitid">Unit Id</option>
-            <option value="station">Station</option>
-            <option value="mostbroken">Most Broken</option>
-          </select>
-        </div>
-
-        <div class="form-group">
+<!--         <div class="form-group">
           <label for='date-index-input'>Date Index</label>
           <input id='date-index-input' type="number" min=0 v-model="date_index">
+        </div> -->
+
+        <div class="form-group">
+          <label for='daterangeinput'>Date Range</label>
+          <input id='daterangeinput' type="text" name="daterange" />
         </div>
 
-        <input id='daterangeinput' type="text" name="daterange" />
+        <br>
 
         <div class="form-group">
           <label for="tick-input">Sleep</label>
@@ -94,29 +118,75 @@
       <p>Animation State: {{ animation_state }}</p>
       <p>Start Date: {{ start_date }}</p>
       <p>End Date: {{ end_date }}</p>
+      <p>Tab: {{ tab_index }} </p>
 
       {{ items && items.dates[[date_index]] }}
 
-      <div v-if="items !== null">
+      
 
-        <!-- TODO:
-        1. Add a key here to track the unit.
-        2. Provide styling based on the date.
-        -->
 
-        <div
-          class="unit-square"
-          v-for="(unit, index) in units"
-          :key="unit.unit_id"
-          v-bind:class="{
-            maActive: highlighted_units[unit.unit_index] == 1,
-            maNotActive: highlighted_units[unit.unit_index] == 0}"
-          :title="unit.unit_id"
+      <tabs v-model="tab_index">
+        <tab title="All Units">
+          <div v-if="(items !== null) && tab_index === 0">
+            <form>
+              <div class="form-group">
+                <label for='sort-select'>Sort Order</label>
+                <select id='sort-select' name="sortorder" v-model="sortorder">
+                  <option value="unitid">Unit Id</option>
+                  <option value="station">Station</option>
+                  <option value="mostbroken">Most Broken</option>
+                </select>
+              </div>
+            </form>
 
-          >
-          {{ index }}
-        </div>
-      </div>
+            <div
+              class="unit-square ma-tooltip"
+              v-for="unit in units"
+              :key="unit.unit_id"
+              v-bind:class="{
+                maActive: highlighted_units[unit.unit_index] == 1,
+                maNotActive: highlighted_units[unit.unit_index] == 0}"
+
+              >
+                <span class="ma-tooltiptext">
+
+                    Unit: {{ unit.unit_id }}<br>
+                    Station: {{ unit.station_name }}, {{ unit.station_desc }}<br>
+                    Description: {{ unit.esc_desc }}<br>
+                 
+                </span>
+            </div>
+          </div>
+        </tab>
+        <tab title="By Station">
+          <div v-if="(items !== null) && tab_index === 1">
+            <div
+              v-for="unit_group in units_by_station"
+              :key="unit_group.station">
+
+              <h3>{{ unit_group.station }}</h3>
+
+              <div v-for="unit in unit_group.units"
+                :key="unit.unit_id"
+                class="unit-square ma-tooltip"
+                v-bind:class="{
+                  maActive: highlighted_units[unit.unit_index] == 1,
+                  maNotActive: highlighted_units[unit.unit_index] == 0}"
+                >
+                  <span class="ma-tooltiptext">
+        
+                      Unit: {{ unit.unit_id }}<br>
+                      Station: {{ unit.station_name }}, {{ unit.station_desc }}<br>
+                      Description: {{ unit.esc_desc }}<br>
+                   
+                  </span>
+              </div>
+
+            </div>
+          </div>
+        </tab>
+      </tabs>
+
 
     </div>
 
@@ -130,6 +200,7 @@
           message: 'Hello Vue!',
           items : null,
           units : [],
+          units_by_station: [],
           status : "BROKEN",
           date_index : 0,
           daterangeinput_el: null,
@@ -144,7 +215,9 @@
           tick: 300, // 300ms
           animation_state: "STOP",
           last_tick: null,
-          sortorder: "unitid"
+          sortorder: "unitid",
+
+          tab_index: 1
 
         },
         watch: {
@@ -164,6 +237,7 @@
                 console.log("Got the data.");
                 self.items = new_data;
                 self.units = hydrate_units(new_data);
+                self.units_by_station = units_by_station(self.units);
                 self.configure_date_range_picker();
 
                 // Sort units by broken count
@@ -200,7 +274,7 @@
             if(this.daterangeinput_el === null) return;
 
             var d = this.daterangeinput_el.data('daterangepicker');
-            if(d === null) return;
+            if(!d) { return; }
 
             this.start_date = d.startDate;
             this.end_date = d.endDate;

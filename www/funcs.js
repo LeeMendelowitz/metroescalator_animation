@@ -43,3 +43,27 @@ var compute_broken_count = function(items) {
   })
   return ret;
 };
+
+var units_by_station = function(units) {
+  var station_to_units = {};
+  var stations = [];
+  var i,u;
+  var ret;
+  for(i = 0; i < units.length; i++) {
+    u = units[i];
+    if(station_to_units.hasOwnProperty(u.station_name)) {
+      station_to_units[u.station_name].push(u);
+    } else {
+      station_to_units[u.station_name] = [u];
+      stations.push(u.station_name);
+    }
+  }
+  stations = stations.sort();
+  var ret = stations.map(function(s) {
+    return { 
+      station: s,
+      units: station_to_units[s]
+    };
+  });
+  return ret;
+}
