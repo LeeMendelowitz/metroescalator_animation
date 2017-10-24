@@ -163,7 +163,7 @@
           <p>End Date: {{ end_date }}</p>
           <p>Tab: {{ group_index }} </p>
 
-          {{ items && items.dates[[date_index]] }}
+          {{ outage_data && outage_data.dates[[date_index]] }}
         </div>
  -->
         <!-- current date -->
@@ -173,7 +173,7 @@
 
         <!-- output for no grouping -->
         <div class="row">
-          <div v-if="(items !== null) && group_index === 0">
+          <div v-if="(outage_data !== null) && group_index === 0">
             <form>
               <div class="form-group">
                 <label for='sort-select'>Sort Order</label>
@@ -207,7 +207,7 @@
 
         <!-- output for grouping by station -->
         <div class="row">
-          <div v-if="(items !== null) && group_index === 1">
+          <div v-if="(outage_data !== null) && group_index === 1">
             <div
               v-for="unit_group in units_by_station"
               :key="unit_group.station">
@@ -248,7 +248,7 @@
         el: '#app',
         data: {
           message: 'Hello Vue!',
-          items : null,
+          outage_data : null,
           units : [],
           units_by_station: [],
           status : "BROKEN",
@@ -285,7 +285,7 @@
             var self = this;
             var req = $.getJSON( apiURL, function( new_data ) {
                 console.log("Got the data.");
-                self.items = new_data;
+                self.outage_data = new_data;
                 self.units = hydrate_units(new_data);
                 self.units_by_station = units_by_station(self.units);
                 self.configure_date_range_picker();
@@ -299,8 +299,8 @@
 
           configure_date_range_picker: function() {
             var self = this;
-            self.min_date = self.items.dates[0];
-            self.max_date = self.items.dates[self.items.dates.length - 1];
+            self.min_date = self.outage_data.dates[0];
+            self.max_date = self.outage_data.dates[self.outage_data.dates.length - 1];
 
             // Configure the date range input with the min and max dates
             var $el = $('#daterangeinput');
@@ -332,7 +332,7 @@
             this.start_date_index = this.start_date.diff(this.min_date, "days");
             this.end_date_index = this.end_date.diff(this.min_date, "days");
 
-            var max_date_index = this.items.dates.length;
+            var max_date_index = this.outage_data.dates.length;
             if(this.start_date_index < 0 || this.start_date_index >= max_date_index) {
               console.log("Bad start date index: " + this.start_date_index + '. Max allowed is ' + max_date_index);
               this.start_date_index = 0;
@@ -443,30 +443,30 @@
         computed: {
           date_index_str : function() {
             
-            if(!this.items || (!this.date_index && this.date_index !== 0)) {
+            if(!this.outage_data || (!this.date_index && this.date_index !== 0)) {
               return undefined;
             }
-            var d = this.items.dates[[this.date_index]];
+            var d = this.outage_data.dates[[this.date_index]];
             var s_out = moment(d).format('ddd MMMM Do, YYYY')
             return s_out;
 
           },
           num_units : function() {
 
-            if(this.items === null) {
+            if(this.outage_data === null) {
               return 0;
             }
 
-            return this.items.units.length;
+            return this.outage_data.units.length;
 
           }, 
           highlighted_units: function() {
 
-            if(this.items === null) {
+            if(this.outage_data === null) {
               return [];
             }
 
-            var ones = this.items.category_by_date[this.status][this.date_index];
+            var ones = this.outage_data.category_by_date[this.status][this.date_index];
             if (ones === undefined) {
               return [];
             }
