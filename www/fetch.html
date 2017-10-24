@@ -1,23 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
 <html>
   <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>DCMetroMetrics: MetroEscalators Animation</title>
+
 
     <!-- Node modules styles -->
-    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="node_modules/daterangepicker/daterangepicker.css" rel="stylesheet">
-
-
+    <link href="//unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="//unpkg.com/daterangepicker@2.1.25/daterangepicker.css" rel="stylesheet">
     <!-- End node module styles -->
 
     <script type="text/javascript" src="funcs.js"></script>
 
 
     <!-- Javascript -->
-    <script type="text/javascript" src="node_modules/vue/dist/vue.js"></script>
-    <script type="text/javascript" src="node_modules/jquery/dist/jquery.js"></script>
-    <script type="text/javascript" src="node_modules/bootstrap/dist/js/bootstrap.js"></script>
-    <script type="text/javascript" src="node_modules/moment/moment.js"></script>
-    <script type="text/javascript" src="node_modules/daterangepicker/daterangepicker.js"></script>
-    <script src="//unpkg.com/uiv/dist/uiv.min.js"></script>
+    <script type="text/javascript" src="//unpkg.com/jquery@3.2.1/dist/jquery.js" ></script>
+    <script type="text/javascript" src="//unpkg.com/vue@2.5.2/dist/vue.min.js" ></script>
+    <script type="text/javascript" src="//unpkg.com/bootstrap@3.3.7/dist/js/bootstrap.min.js" ></script>
+
+    <script type="text/javascript" src="//unpkg.com/moment@2.19.1/min/moment.min.js" ></script>
+    <script type="text/javascript" src="//unpkg.com/daterangepicker@2.1.25/daterangepicker.js" ></script>
+    
     <!-- End Javascript -->
 
 
@@ -92,42 +97,43 @@
       <div class="container">
 
         <!-- form controls -->
-        <div class="row">
-          <h3>Controls</h3>
-          <div class="col-xs-12">
-            <form class="form-inline">
 
-              <div class="form-group">
-                <label for='status-type-select'>Status Type</label>
-                <select id='status-type-select' name="status" v-model="status">
-                  <option value="BROKEN">Broken</option>
-                  <option value="INSPECTION">Inspection</option>
-                  <option value="REHAB">Rehab</option>
-                  <option value="OFF">Off</option>
-                </select>
-              </div>
+          <div class="well well-md">
+            <h3>Controls</h3>
+
+              <form class="form-inline">
+
+                <div class="form-group">
+                  <label for='status-type-select'>Status Type</label>
+                  <select id='status-type-select' name="status" v-model="status">
+                    <option value="BROKEN">Broken</option>
+                    <option value="INSPECTION">Inspection</option>
+                    <option value="REHAB">Rehab</option>
+                    <option value="OFF">Off</option>
+                  </select>
+                </div>
 
 
-              <div class="form-group">
-                <label for='daterangeinput'>Date Range</label>
-                <input id='daterangeinput' type="text" name="daterange" />
-              </div>
+                <div class="form-group">
+                  <label for='daterangeinput'>Date Range</label>
+                  <input id='daterangeinput' type="text" name="daterange" />
+                </div>
 
-              <div class="form-group">
-                <label for="tick-input">Sleep</label>
-                <input id='tick-inpu' type='number' name='tick' v-model="tick" />
-              </div>
+                <div class="form-group">
+                  <label for="tick-input">Sleep</label>
+                  <input id='tick-inpu' type='number' name='tick' v-model="tick" />
+                </div>
 
-              <label for="unit-grouping-btn">Grouping</label>
-              <div id='unit-grouping-btn' class="btn-group" role="group">
-                <button type="button" class="btn btn-default"
-                  v-on:click="set_unit_grouping(0)"
-                  v-bind:class="{active: group_index == 0}">None</button>
-                <button type="button" class="btn btn-default" v-on:click="set_unit_grouping(1)"
-                v-bind:class="{active: group_index == 1}">By Station</button>
-              </div>
+                <label for="unit-grouping-btn">Grouping</label>
+                <div id='unit-grouping-btn' class="btn-group" role="group">
+                  <button type="button" class="btn btn-default"
+                    v-on:click="set_unit_grouping(0)"
+                    v-bind:class="{active: group_index == 0}">None</button>
+                  <button type="button" class="btn btn-default" v-on:click="set_unit_grouping(1)"
+                  v-bind:class="{active: group_index == 1}">By Station</button>
+                </div>
 
-   
+     
 
                 <div class="btn-group" role="toolbar" >
                   <button type="button" class="btn btn-primary" role="group" v-on:click="play()"
@@ -143,13 +149,14 @@
                   </button>
                 </div>
 
-            </form>
-          </div>
+              </form>
+     
+          </div> <!-- /well -->
 
-        </div>
+
 
         <!-- debug output -->
-        <div class="row">
+<!--         <div class="row">
           <h4>DEBUG</h4>
           <p>Animation State: {{ animation_state }}</p>
           <p>Start Date: {{ start_date }}</p>
@@ -158,7 +165,7 @@
 
           {{ items && items.dates[[date_index]] }}
         </div>
-
+ -->
         <!-- current date -->
         <div class="row">
           <h3>{{ date_index_str }}</h3>
@@ -167,7 +174,6 @@
         <!-- output for no grouping -->
         <div class="row">
           <div v-if="(items !== null) && group_index === 0">
-            <h4> All units </h4>
             <form>
               <div class="form-group">
                 <label for='sort-select'>Sort Order</label>
@@ -202,7 +208,6 @@
         <!-- output for grouping by station -->
         <div class="row">
           <div v-if="(items !== null) && group_index === 1">
-            <h4>By Station</h4>
             <div
               v-for="unit_group in units_by_station"
               :key="unit_group.station">
@@ -366,9 +371,9 @@
               self.timeout_id = setTimeout(function(){
                 self.date_index += 1;
                 var n = new Date();
-                if(self.last_tick) {
-                  console.log("Tick delta: ", n - self.last_tick);
-                }
+                // if(self.last_tick) {
+                //   console.log("Tick delta: ", n - self.last_tick);
+                // }
                 self.last_tick = n;
                 self.next_tick();
               }, sleep);
@@ -476,16 +481,6 @@
 
       });
 
-
-      // $(function() {
-      //   var $el = $('#daterangeinput');
-      //   $el.daterangepicker();
-      //   app.daterangeinput_el = $el;
-      //   $el.on('apply.daterangepicker', function(ev, picker) {
-      //     app.updateDateRange()
-      //   });
-      //   app.updateDateRange();
-      // });
     </script>
 
   </body>
