@@ -382,7 +382,7 @@
           show_streaks: false,
           unit_type: 'both',
 
-          group_index: 1,
+          group_index: 0,
           have_data: false
 
         },
@@ -592,8 +592,22 @@
               unit['display_class_obj'] = {
                   'ma-active': unit.category_to_timeseries[status][date_index] == 1
                 };
-              var streak = unit.category_to_streaks[status][date_index];
-              unit['display_streak'] =  streak > 0 ? streak : "";
+
+              var streak_n = unit.category_to_streaks[status][date_index];
+
+              if(streak_n === 0) {
+                unit['display_streak'] = "";
+                return;
+              }
+
+              var streak_str = streak_n.toString();
+              if (streak_n > 365) {
+                unit['display_streak'] =  Math.round(streak_n/365*12.0) + "m";
+                return;
+              }
+
+              unit['display_streak'] =  streak_n;
+              
 
             });
 
