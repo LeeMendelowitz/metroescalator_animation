@@ -1,6 +1,6 @@
 # MetroEscalator Animation
 
-An interactive animation of daily escalator and elevator statuses in the DC Metrorail System. This app uses open source data available at [DC Metro Metrics](http://dcmetrometrics.com/data)
+An interactive animation of daily escalator and elevator statuses in the DC Metrorail System. This app uses open source data available at [DC Metro Metrics](http://dcmetrometrics.com/data). Check out the app [here](http://dcmetrometrics.com/animation/).
 
 ## Directions
 
