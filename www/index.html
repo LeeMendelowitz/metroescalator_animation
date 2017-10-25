@@ -32,6 +32,11 @@
 
       body { padding-top: 70px; }
 
+      [v-cloak] {
+        display: none;
+      }
+
+
       .unit-square {
         display: inline-block;
         width: 20px;
@@ -101,7 +106,7 @@
 
   <body>
 
-    <div id="app">
+    <div id="app" v-cloak>
 
       <nav class="navbar navbar-default navbar-fixed-top">
         <div class="container-fluid">
@@ -109,7 +114,7 @@
             <span class="navbar-brand">MetroEscalator Animation</span>
           </div>
           <div>
-            <span>{{ date_index_str }}</span>
+            <span class="navbar-brand" style="color: black;">{{ date_index_str }}</span>
           </div>
 
         </div>
