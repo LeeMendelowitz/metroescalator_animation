@@ -38,6 +38,8 @@
         height: 20px;
         background-color: #efeff3;
         border: 1px solid #ccc;
+        border: 1px solid #7f7f7f;
+        border-radius: 3px;
         margin: 5px;
         font-size: 12px;
         color: black;
@@ -72,11 +74,12 @@
           visibility: hidden;
           width: 200px;
           background-color: #eaeaea;
+          background-color: #AFFF87;
           border: 1px solid #515151;
           border-radius: 6px;
 
           color: black;
-          text-align: center;
+          text-align: left;
           font-size: 12px;
           padding: 5px 2px;
 
@@ -216,9 +219,9 @@
               >
                 <span class="ma-tooltiptext">
 
-                    Unit: {{ unit.unit_id }}<br>
-                    Station: {{ unit.station_name }}, {{ unit.station_desc }}<br>
-                    Description: {{ unit.esc_desc }}<br>
+                    <span style="font-weight: bold;">Unit:</span> {{ unit.unit_id }}<br>
+                    <span style="font-weight: bold;">Station:</span> {{ unit.station_name }}, {{ unit.station_desc }}<br>
+                    <span style="font-weight: bold;">Description:</span> {{ unit.esc_desc }}
                  
                 </span>
 
@@ -249,9 +252,9 @@
                 
                   <span class="ma-tooltiptext">
         
-                      Unit: {{ unit.unit_id }}<br>
-                      Station: {{ unit.station_name }}, {{ unit.station_desc }}<br>
-                      Description: {{ unit.esc_desc }}<br>
+                      <span style="font-weight: bold;">Unit:</span> {{ unit.unit_id }}<br>
+                      <span style="font-weight: bold;">Station:</span> {{ unit.station_name }}, {{ unit.station_desc }}<br>
+                      <span style="font-weight: bold;">Description:</span> {{ unit.esc_desc }}
                    
                   </span>
 
