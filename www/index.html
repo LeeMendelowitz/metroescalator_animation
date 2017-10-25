@@ -397,6 +397,9 @@
           },
           status : function() {
             this.update_unit_display_info();
+            if(this.sortorder == "streak") {
+              this.sort_units();
+            }
           },
           date_index : function() {
             this.update_unit_display_info();
