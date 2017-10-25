@@ -7,10 +7,10 @@
     <title>DCMetroMetrics: MetroEscalators Animation</title>
 
 
-    <!-- Node modules styles -->
     <link href="//unpkg.com/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="//unpkg.com/daterangepicker@2.1.25/daterangepicker.css" rel="stylesheet">
-    <!-- End node module styles -->
+    <link href="https://afeld.github.io/emoji-css/emoji.css" rel="stylesheet">
+
 
     <script type="text/javascript" src="funcs.js"></script>
 
@@ -32,10 +32,47 @@
 
       body { padding-top: 70px; }
 
+
       [v-cloak] {
         display: none;
       }
 
+      body.halloween {
+        background-color: orange;
+      }
+
+      .halloween .navbar {
+        background-color: black;
+        color: orange;
+        border-color: black;
+      }
+
+      .halloween .navbar-brand {
+        background-color: black;
+        color: orange;
+      }
+
+      .halloween .ma-controls {
+        background-color: black;
+        color: orange;
+        border-color: black;
+      }
+
+      .ghosts {
+        display: none;
+      }
+
+      .halloween .ghosts {
+        display: inline-block;
+      }
+
+      .ma-navbar-date {
+        color: black;
+      }
+
+      .halloween .ma-navbar-date {
+        color: orange;
+      }
 
       .unit-square {
         display: inline-block;
@@ -54,6 +91,12 @@
 
       }
 
+      .halloween .unit-square {
+        border-color: orange;
+        background-color: black;
+        color: white;
+      }
+
       .ma-streak {
         display: block;
       }
@@ -66,18 +109,22 @@
 
       .ma-broken .ma-active {
         background-color: #ff8383;
+        color: black;
       }
 
       .ma-off .ma-active {
         background-color:   #ffca94;
+        color: black;
       }
 
       .ma-inspection .ma-active {
         background-color:   #4de9ff;
+        color: black;
       }
 
       .ma-rehab .ma-active {
         background-color: #ffee87;
+        color: black;
       }
 
       .ma-tooltip {
@@ -115,7 +162,7 @@
 
   <body>
 
-    <div id="app">
+    <div id="app" v-cloak>
 
       <nav class="navbar navbar-default navbar-fixed-top">
         <div class="container-fluid">
@@ -123,7 +170,14 @@
             <span class="navbar-brand">MetroEscalator Animation</span>
           </div>
           <div>
-            <span class="navbar-brand" style="color: black;">{{ date_index_str }}</span>
+              <span class="navbar-brand ma-navbar-date">{{ date_index_str }}
+              <div class="ghosts">
+                <i class="em em-ghost"></i>
+                <i class="em em-ghost"></i>
+                <i class="em em-ghost"></i>
+              </div>
+            </span>
+
           </div>
 
         </div>
@@ -133,7 +187,7 @@
 
         <!-- form controls -->
 
-          <div class="well well-md">
+          <div class="well well-md ma-controls">
             <h3>Controls</h3>
 
               <form class="form-inline">
@@ -206,7 +260,7 @@
 
 
         <!-- debug output -->
-<!--         <div class="row">
+      <!--         <div class="row">
           <h4>DEBUG</h4>
           <p>Animation State: {{ animation_state }}</p>
           <p>Start Date: {{ start_date }}</p>
@@ -215,36 +269,66 @@
 
           {{ outage_data && outage_data.dates[[date_index]] }}
         </div>
- -->
-        <!-- current date -->
-        <div class="row">
-          <h3>{{ date_index_str }}</h3>
-          Each box below represents an escalator or elevator in the Metrorail system.
-          Units that are color shaded were {{ status_str }} on this date.
-          <span v-if="show_streaks">The numbers represent the number of consecutive days that the unit was {{ status_str }} (or not).</span>
+      -->
+      <!-- current date -->
+      <div class="row">
+        <h3>{{ date_index_str }}</h3>
+        Each box below represents an escalator or elevator in the Metrorail system.
+        Units that are color shaded were {{ status_str }} on this date.
+        <span v-if="show_streaks">The numbers represent the number of consecutive days that the unit was {{ status_str }} (or not).</span>
+      </div>
+
+      <!-- output for no grouping -->
+      <div class="row" v-if="have_data">
+        <div v-if="(outage_data !== null) && group_index === 0" v-bind:class="status_class">
+          <form>
+            <div class="form-group">
+              <label for='sort-select'>Sort Order</label>
+              <select id='sort-select' name="sortorder" v-model="sortorder">
+                <option value="unitid">Unit Id</option>
+                <option value="station">Station</option>
+                <option value="mostbroken">Most Broken</option>
+              </select>
+            </div>
+          </form>
+
+          <div
+            class="unit-square ma-tooltip"
+            v-for="unit in units"
+            :key="unit.unit_id"
+            v-bind:class="unit.display_class_obj">
+              <span class="ma-tooltiptext">
+
+                  <span style="font-weight: bold;">Unit:</span> {{ unit.unit_id }}<br>
+                  <span style="font-weight: bold;">Station:</span> {{ unit.station_name }}, {{ unit.station_desc }}<br>
+                  <span style="font-weight: bold;">Description:</span> {{ unit.esc_desc }}
+               
+              </span>
+
+              <span class="ma-streak">
+              {{ unit.display_streak }}
+              </span>
+
+          </div>
         </div>
+      </div>
 
-        <!-- output for no grouping -->
-        <div class="row" v-if="have_data">
-          <div v-if="(outage_data !== null) && group_index === 0" v-bind:class="status_class">
-            <form>
-              <div class="form-group">
-                <label for='sort-select'>Sort Order</label>
-                <select id='sort-select' name="sortorder" v-model="sortorder">
-                  <option value="unitid">Unit Id</option>
-                  <option value="station">Station</option>
-                  <option value="mostbroken">Most Broken</option>
-                </select>
-              </div>
-            </form>
+      <!-- output for grouping by station -->
+      <div class="row" v-if="have_data">
+        <div v-if="(outage_data !== null) && group_index === 1" v-bind:class="status_class">
+          <div
+            v-for="unit_group in units_by_station"
+            :key="unit_group.station">
 
-            <div
-              class="unit-square ma-tooltip"
-              v-for="unit in units"
+            <h5>{{ unit_group.station }}</h5>
+
+            <div v-for="unit in unit_group.units"
               :key="unit.unit_id"
+              class="unit-square ma-tooltip"
               v-bind:class="unit.display_class_obj">
+              
                 <span class="ma-tooltiptext">
-
+      
                     <span style="font-weight: bold;">Unit:</span> {{ unit.unit_id }}<br>
                     <span style="font-weight: bold;">Station:</span> {{ unit.station_name }}, {{ unit.station_desc }}<br>
                     <span style="font-weight: bold;">Description:</span> {{ unit.esc_desc }}
@@ -256,40 +340,10 @@
                 </span>
 
             </div>
+
           </div>
         </div>
-
-        <!-- output for grouping by station -->
-        <div class="row" v-if="have_data">
-          <div v-if="(outage_data !== null) && group_index === 1" v-bind:class="status_class">
-            <div
-              v-for="unit_group in units_by_station"
-              :key="unit_group.station">
-
-              <h5>{{ unit_group.station }}</h5>
-
-              <div v-for="unit in unit_group.units"
-                :key="unit.unit_id"
-                class="unit-square ma-tooltip"
-                v-bind:class="unit.display_class_obj">
-                
-                  <span class="ma-tooltiptext">
-        
-                      <span style="font-weight: bold;">Unit:</span> {{ unit.unit_id }}<br>
-                      <span style="font-weight: bold;">Station:</span> {{ unit.station_name }}, {{ unit.station_desc }}<br>
-                      <span style="font-weight: bold;">Description:</span> {{ unit.esc_desc }}
-                   
-                  </span>
-
-                  <span class="ma-streak">
-                  {{ unit.display_streak }}
-                  </span>
-
-              </div>
-
-            </div>
-          </div>
-        </div>
+      </div>
 
 
       </div> <!-- /container -->
@@ -300,6 +354,7 @@
     <script>
 
       var apiURL = "unit_by_date.json";
+      var halloween = false;
 
       var app = new Vue({
         el: '#app',
@@ -531,7 +586,7 @@
             var self = this;
             var status = this.status;
             var date_index = this.date_index;
-            console.log("Update display info", new Date());
+            // console.log("Update display info", new Date());
             this.all_units.forEach(function(unit) {
 
               unit['display_class_obj'] = {
@@ -573,6 +628,21 @@
           }
         }
 
+      });
+
+      // Halloween Easter Egg
+      $(function() {
+        $b = $("body");
+        $b.keydown(function(event) {
+          if(event.key === "h" || event.key === "H") {
+            halloween = !halloween;
+            if(halloween) {
+              $b.addClass("halloween");
+            } else {
+              $b.removeClass("halloween");
+            }
+          }
+        });
       });
 
     </script>
