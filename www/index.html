@@ -285,6 +285,7 @@
             <div class="form-group">
               <label for='sort-select'>Sort Order</label>
               <select id='sort-select' name="sortorder" v-model="sortorder">
+                <option value="streak">Streak</option>
                 <option value="unitid">Unit Id</option>
                 <option value="station">Station</option>
                 <option value="mostbroken">Most Broken</option>
@@ -378,7 +379,7 @@
           tick: 300, // 300ms
           animation_state: "STOP",
           last_tick: null,
-          sortorder: "unitid",
+          sortorder: "station",
           show_streaks: false,
           unit_type: 'both',
 
@@ -399,6 +400,9 @@
           },
           date_index : function() {
             this.update_unit_display_info();
+            if(this.sortorder == "streak") {
+              this.sort_units();
+            }
           }
         },
         created: function () {
@@ -551,6 +555,7 @@
           },
 
           sort_units : function() {
+            // console.log('sort units');
             var u = this.units;
             if(this.sortorder === "unitid") {
               console.log("sort by unit id");
@@ -573,6 +578,15 @@
                 }
                 return left.station_name < right.station_name ? -1 : 1;
               });
+            } else if (this.sortorder === "streak") {
+              u = u.sort(function(left, right) {
+                if(left.active > right.active) {
+                  return -1;
+                } else if (left.active < right.active) {
+                  return 1;
+                }
+                return -(left.streak - right.streak);
+              });
             }
             this.units = u;
 
@@ -589,11 +603,15 @@
             // console.log("Update display info", new Date());
             this.all_units.forEach(function(unit) {
 
+              var active = unit.category_to_timeseries[status][date_index] == 1;
+              var streak_n = unit.category_to_streaks[status][date_index];
+
+              unit['active'] = active;
               unit['display_class_obj'] = {
-                  'ma-active': unit.category_to_timeseries[status][date_index] == 1
+                  'ma-active': active
                 };
 
-              var streak_n = unit.category_to_streaks[status][date_index];
+              unit['streak'] = streak_n;
 
               if(streak_n === 0) {
                 unit['display_streak'] = "";
