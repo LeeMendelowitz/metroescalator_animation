@@ -132,6 +132,7 @@ var assign_streaks_to_units = function(units, category_by_date) {
   units.forEach(function(unit) {
 
     var cat_to_streak = {};
+    var cat_to_timeseries = {};
     var cat_to_dates = unit['category_to_dates'];
     categories.forEach(function(category) {
 
@@ -141,6 +142,8 @@ var assign_streaks_to_units = function(units, category_by_date) {
       active_dates.forEach(function(date_ind) {
         date_indicator[date_ind]=1;
       });
+
+
 
       var streak = Array(n_dates).fill(0);
       var i = unit.first_observed_date;
@@ -154,10 +157,12 @@ var assign_streaks_to_units = function(units, category_by_date) {
       }
 
       cat_to_streak[category] = streak;
+      cat_to_timeseries[category] = date_indicator;
 
     });
 
     unit['category_to_streaks'] = cat_to_streak;
+    unit['category_to_timeseries'] = cat_to_timeseries;
   });
 
 

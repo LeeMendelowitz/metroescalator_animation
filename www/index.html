@@ -127,7 +127,7 @@
 
                 <div class="form-group">
                   <label for="tick-input">Sleep</label>
-                  <input id='tick-inpu' type='number' name='tick' v-model="tick" />
+                  <input id='tick-input' type='number' name='tick' min=200 v-model="tick" />
                 </div>
 
                 <label for="unit-grouping-btn">Grouping</label>
@@ -196,9 +196,8 @@
               v-for="unit in units"
               :key="unit.unit_id"
               v-bind:class="{
-                maActive: highlighted_units[unit.unit_index] == 1,
-                maNotActive: highlighted_units[unit.unit_index] == 0}"
-
+                maActive: unit.category_to_timeseries[status][date_index] == 1,
+                maNotActive: unit.category_to_timeseries[status][date_index] == 0}"
               >
                 <span class="ma-tooltiptext">
 
@@ -208,7 +207,7 @@
                  
                 </span>
 
-                <span class="ma-streak">
+                <span class="ma-streak" v-if="unit.category_to_streaks[status][date_index] > 0">
                   {{ unit.category_to_streaks[status][date_index] }}
                 </span>
 
@@ -229,8 +228,8 @@
                 :key="unit.unit_id"
                 class="unit-square ma-tooltip"
                 v-bind:class="{
-                  maActive: highlighted_units[unit.unit_index] == 1,
-                  maNotActive: highlighted_units[unit.unit_index] == 0}"
+                  maActive: unit.category_to_timeseries[status][date_index] == 1,
+                  maNotActive: unit.category_to_timeseries[status][date_index] == 0}"
                 >
                   <span class="ma-tooltiptext">
         
@@ -240,7 +239,7 @@
                    
                   </span>
 
-                  <span class="ma-streak">
+                  <span class="ma-streak" v-if="unit.category_to_streaks[status][date_index] > 0">
                   {{ unit.category_to_streaks[status][date_index] }}
                   </span>
               </div>
@@ -367,31 +366,17 @@
             var this_tick, tick_delta, sleep;
             if(this.date_index < this.end_date_index) {
 
-              self.animation_state = "PLAY";
-              sleep = self.tick;
+              // self.animation_state = "PLAY";
+              // sleep = self.tick;
+              self.date_index += 1;
 
-              this_tick = new Date();
+              // this_tick = new Date();
 
-              // Check if we should adjust the sleep due to animation lag
-              if(self.last_tick) {
-                tick_delta = this_tick - self.last_tick
-                sleep = self.tick - tick_delta;
-                if (sleep < 0) {
-                  console.log("Warning: Animation is lagging behind by " + sleep + " ms");
-                }
-                sleep = sleep > 0 ? sleep : 0;
-              }
 
               // increment the date index
               self.timeout_id = setTimeout(function(){
-                self.date_index += 1;
-                var n = new Date();
-                // if(self.last_tick) {
-                //   console.log("Tick delta: ", n - self.last_tick);
-                // }
-                self.last_tick = n;
                 self.next_tick();
-              }, sleep);
+              }, self.tick_numeric);
 
             } else {
               self.animation_state = "STOP";
@@ -456,6 +441,9 @@
         },
 
         computed: {
+          tick_numeric : function() {
+            return parseInt(this.tick);
+          },
           date_index_str : function() {
             
             if(!this.outage_data || (!this.date_index && this.date_index !== 0)) {
@@ -474,24 +462,7 @@
 
             return this.outage_data.units.length;
 
-          }, 
-          highlighted_units: function() {
-
-            if(this.outage_data === null) {
-              return [];
-            }
-
-            var ones = this.outage_data.category_by_date[this.status][this.date_index];
-            if (ones === undefined) {
-              return [];
-            }
-            var ret = Array(this.num_units).fill(0);
-            ones.forEach(function(ind) {
-              ret[ind] = 1;
-            });
-            return ret;
           }
-
         }
 
       });
