@@ -115,7 +115,7 @@
 
   <body>
 
-    <div id="app" v-cloak>
+    <div id="app">
 
       <nav class="navbar navbar-default navbar-fixed-top">
         <div class="container-fluid">
@@ -242,10 +242,7 @@
               class="unit-square ma-tooltip"
               v-for="unit in units"
               :key="unit.unit_id"
-              v-bind:class="{
-                  'ma-active': unit.category_to_timeseries[status][date_index] == 1
-                }"
-              >
+              v-bind:class="unit.display_class_obj">
                 <span class="ma-tooltiptext">
 
                     <span style="font-weight: bold;">Unit:</span> {{ unit.unit_id }}<br>
@@ -254,8 +251,8 @@
                  
                 </span>
 
-                <span class="ma-streak" v-if="(unit.category_to_streaks[status][date_index] > 0)">
-                  {{ unit.category_to_streaks[status][date_index] }}
+                <span class="ma-streak">
+                {{ unit.display_streak }}
                 </span>
 
             </div>
@@ -274,10 +271,7 @@
               <div v-for="unit in unit_group.units"
                 :key="unit.unit_id"
                 class="unit-square ma-tooltip"
-                v-bind:class="{
-                  'ma-active': unit.category_to_timeseries[status][date_index] == 1
-                }"
-              >
+                v-bind:class="unit.display_class_obj">
                 
                   <span class="ma-tooltiptext">
         
@@ -287,9 +281,10 @@
                    
                   </span>
 
-                  <span class="ma-streak" v-if="(unit.category_to_streaks[status][date_index] > 0)" >
-                  {{ unit.category_to_streaks[status][date_index] }}
+                  <span class="ma-streak">
+                  {{ unit.display_streak }}
                   </span>
+
               </div>
 
             </div>
@@ -300,7 +295,7 @@
       </div> <!-- /container -->
     </div> <!-- /app -->
 
-    <
+    
 
     <script>
 
@@ -343,6 +338,12 @@
           unit_type : function () {
             this.filter_units();
             this.sort_units();
+          },
+          status : function() {
+            this.update_unit_display_info();
+          },
+          date_index : function() {
+            this.update_unit_display_info();
           }
         },
         created: function () {
@@ -363,7 +364,9 @@
                 
                 self.filter_units()
                 self.sort_units();
+                self.update_unit_display_info();
                 self.have_data = true;
+
             });
           },
 
@@ -521,6 +524,25 @@
           },
           set_unit_grouping : function(index) {
             this.group_index = index;
+          },
+
+          // Update the class and streak values for each unit.
+          update_unit_display_info : function() {
+            var self = this;
+            var status = this.status;
+            var date_index = this.date_index;
+            console.log("Update display info", new Date());
+            this.all_units.forEach(function(unit) {
+
+              unit['display_class_obj'] = {
+                  'ma-active': unit.category_to_timeseries[status][date_index] == 1
+                };
+              var streak = unit.category_to_streaks[status][date_index];
+              unit['display_streak'] =  streak > 0 ? streak : "";
+
+            });
+
+
           }
 
         },
