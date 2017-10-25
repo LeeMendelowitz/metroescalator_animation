@@ -38,12 +38,18 @@
         height: 20px;
         background-color: black;
         margin: 5px;
-        font-size: 6px;
+        font-size: 12px;
+        color: white;
+        text-align: center;
+        vertical-align: middle;
+        line-height: 20px;
+
       }
 
       .maActive {
         background-color: red;
       }
+
 
 
       .ma-tooltip {
@@ -201,6 +207,11 @@
                     Description: {{ unit.esc_desc }}<br>
                  
                 </span>
+
+                <span class="ma-streak">
+                  {{ unit.category_to_streaks[status][date_index] }}
+                </span>
+
             </div>
           </div>
         </div>
@@ -227,6 +238,10 @@
                       Station: {{ unit.station_name }}, {{ unit.station_desc }}<br>
                       Description: {{ unit.esc_desc }}<br>
                    
+                  </span>
+
+                  <span class="ma-streak">
+                  {{ unit.category_to_streaks[status][date_index] }}
                   </span>
               </div>
 
