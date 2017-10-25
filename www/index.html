@@ -54,6 +54,15 @@
 
       }
 
+      .ma-streak {
+        display: block;
+      }
+
+      .ma-hide-streak .ma-streak {
+        display: none;
+      }
+
+
 
       .ma-broken .ma-active {
         background-color: #ff8383;
@@ -130,6 +139,15 @@
               <form class="form-inline">
 
                 <div class="form-group">
+                  <label for='unit-type-select'>Unit Type</label>
+                  <select id='unit-type-select' name="status" v-model="unit_type">
+                    <option value="both">Escalators + Elevators</option>
+                    <option value="escalators">Escalators Only</option>
+                    <option value="elevators">Elevators Only</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
                   <label for='status-type-select'>Status Type</label>
                   <select id='status-type-select' name="status" v-model="status">
                     <option value="BROKEN">Broken</option>
@@ -175,6 +193,12 @@
                   </button>
                 </div>
 
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" v-model="show_streaks">Show Consecutive Count
+                  </label>
+                </div>
+
               </form>
      
           </div> <!-- /well -->
@@ -197,7 +221,7 @@
           <h3>{{ date_index_str }}</h3>
           Each box below represents an escalator or elevator in the Metrorail system.
           Units that are color shaded were {{ status_str }} on this date.
-          The numbers represent the number of consecutive days that the unit was {{ status_str }} (or not).
+          <span v-if="show_streaks">The numbers represent the number of consecutive days that the unit was {{ status_str }} (or not).</span>
         </div>
 
         <!-- output for no grouping -->
@@ -230,7 +254,7 @@
                  
                 </span>
 
-                <span class="ma-streak" v-if="unit.category_to_streaks[status][date_index] > 0">
+                <span class="ma-streak" v-if="(unit.category_to_streaks[status][date_index] > 0)">
                   {{ unit.category_to_streaks[status][date_index] }}
                 </span>
 
@@ -263,7 +287,7 @@
                    
                   </span>
 
-                  <span class="ma-streak" v-if="unit.category_to_streaks[status][date_index] > 0">
+                  <span class="ma-streak" v-if="(unit.category_to_streaks[status][date_index] > 0)" >
                   {{ unit.category_to_streaks[status][date_index] }}
                   </span>
               </div>
@@ -288,6 +312,7 @@
           message: 'Hello Vue!',
           outage_data : null,
           units : [],
+          all_units : [],
           units_by_station: [],
           status : "BROKEN",
           date_index : 0,
@@ -304,6 +329,8 @@
           animation_state: "STOP",
           last_tick: null,
           sortorder: "unitid",
+          show_streaks: false,
+          unit_type: 'both',
 
           group_index: 1,
           have_data: false
@@ -311,6 +338,10 @@
         },
         watch: {
           sortorder : function() {
+            this.sort_units();
+          },
+          unit_type : function () {
+            this.filter_units();
             this.sort_units();
           }
         },
@@ -325,12 +356,14 @@
             var req = $.getJSON( apiURL, function( new_data ) {
                 console.log("Got the data.");
                 self.outage_data = new_data;
-                self.units = hydrate_units(new_data);
-                self.units_by_station = units_by_station(self.units);
+                self.all_units = hydrate_units(new_data);
+                self.units_by_station = units_by_station(self.all_units);
                 self.configure_date_range_picker();
 
-                self.have_data = true;
+                
+                self.filter_units()
                 self.sort_units();
+                self.have_data = true;
             });
           },
 
@@ -437,6 +470,28 @@
 
           },
 
+          filter_units: function () {
+            var u = this.all_units;
+            if (this.unit_type === 'both') {
+              this.units = u;
+              this.units_by_station = units_by_station(u);
+              return;
+            } else if (this.unit_type === 'escalators') {
+              u = u.filter(function(unit) {
+                return unit.unit_type === "ESCALATOR";
+              });
+              this.units = u;
+              this.units_by_station = units_by_station(u);
+            } else if (this.unit_type === 'elevators') {
+              u = u.filter(function(unit) {
+                return unit.unit_type === "ELEVATOR";
+              });
+              this.units = u;
+              this.units_by_station = units_by_station(u);
+            }
+
+          },
+
           sort_units : function() {
             var u = this.units;
             if(this.sortorder === "unitid") {
@@ -474,6 +529,7 @@
           status_class : function() {
             var ret = {};
             ret['ma-' + this.status.toLowerCase()] = true;
+            ret['ma-hide-streak'] = (this.show_streaks === false);
             return ret;
           },
           status_str : function() {
@@ -491,15 +547,6 @@
             var d = this.outage_data.dates[[this.date_index]];
             var s_out = moment(d).format('ddd MMMM Do, YYYY')
             return s_out;
-
-          },
-          num_units : function() {
-
-            if(this.outage_data === null) {
-              return 0;
-            }
-
-            return this.outage_data.units.length;
 
           }
         }
