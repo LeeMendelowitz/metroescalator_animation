@@ -36,21 +36,33 @@
         display: inline-block;
         width: 20px;
         height: 20px;
-        background-color: black;
+        background-color: #efeff3;
+        border: 1px solid #ccc;
         margin: 5px;
         font-size: 12px;
-        color: white;
+        color: black;
         text-align: center;
         vertical-align: middle;
         line-height: 20px;
 
       }
 
-      .maActive {
-        background-color: red;
+
+      .ma-broken .ma-active {
+        background-color: #ff8383;
       }
 
+      .ma-off .ma-active {
+        background-color:   #ffca94;
+      }
 
+      .ma-inspection .ma-active {
+        background-color:   #4de9ff;
+      }
+
+      .ma-rehab .ma-active {
+        background-color: #ffee87;
+      }
 
       .ma-tooltip {
           position: relative;
@@ -175,11 +187,14 @@
         <!-- current date -->
         <div class="row">
           <h3>{{ date_index_str }}</h3>
+          Each box below represents an escalator or elevator in the Metrorail system.
+          Units that are color shaded were {{ status_str }} on this date.
+          The numbers represent the number of consecutive days that the unit was {{ status_str }} (or not).
         </div>
 
         <!-- output for no grouping -->
-        <div class="row">
-          <div v-if="(outage_data !== null) && group_index === 0">
+        <div class="row" v-if="have_data">
+          <div v-if="(outage_data !== null) && group_index === 0" v-bind:class="status_class">
             <form>
               <div class="form-group">
                 <label for='sort-select'>Sort Order</label>
@@ -196,8 +211,8 @@
               v-for="unit in units"
               :key="unit.unit_id"
               v-bind:class="{
-                maActive: unit.category_to_timeseries[status][date_index] == 1,
-                maNotActive: unit.category_to_timeseries[status][date_index] == 0}"
+                  'ma-active': unit.category_to_timeseries[status][date_index] == 1
+                }"
               >
                 <span class="ma-tooltiptext">
 
@@ -216,8 +231,8 @@
         </div>
 
         <!-- output for grouping by station -->
-        <div class="row">
-          <div v-if="(outage_data !== null) && group_index === 1">
+        <div class="row" v-if="have_data">
+          <div v-if="(outage_data !== null) && group_index === 1" v-bind:class="status_class">
             <div
               v-for="unit_group in units_by_station"
               :key="unit_group.station">
@@ -228,9 +243,10 @@
                 :key="unit.unit_id"
                 class="unit-square ma-tooltip"
                 v-bind:class="{
-                  maActive: unit.category_to_timeseries[status][date_index] == 1,
-                  maNotActive: unit.category_to_timeseries[status][date_index] == 0}"
-                >
+                  'ma-active': unit.category_to_timeseries[status][date_index] == 1
+                }"
+              >
+                
                   <span class="ma-tooltiptext">
         
                       Unit: {{ unit.unit_id }}<br>
@@ -281,7 +297,8 @@
           last_tick: null,
           sortorder: "unitid",
 
-          group_index: 1
+          group_index: 1,
+          have_data: false
 
         },
         watch: {
@@ -308,6 +325,7 @@
                 self.units = self.units.sort(function(a,b) {
                   return a.break_count < b.break_count;
                 });
+                self.have_data = true;
             });
           },
 
@@ -441,6 +459,15 @@
         },
 
         computed: {
+          status_class : function() {
+            var ret = {};
+            ret['ma-' + this.status.toLowerCase()] = true;
+            return ret;
+          },
+          status_str : function() {
+            return this.status.toLowerCase();
+            return this.status.slice(0,1).toUpperCase() + this.status.slice(1).toLowerCase();
+          },
           tick_numeric : function() {
             return parseInt(this.tick);
           },
